@@ -1,5 +1,5 @@
 # Alpine packages for the Androws base. One package per line, comments allowed.
-# Anything added here has to come out of the 68 MiB base budget in docs/BUDGETS.md.
+# Anything added here has to come out of the 80 MiB base budget in docs/BUDGETS.md.
 #
 # squashfs-tools, f2fs-tools and e2fsprogs are deliberately NOT here: they are
 # used by the build host to assemble the image (stage 60 runs mksquashfs, etc.)
@@ -13,10 +13,8 @@ musl
 libc-utils
 util-linux-misc
 kmod
-eudev
 mdev-conf
 zram-init
-dbus
 seatd
 labwc
 wlroots
@@ -25,6 +23,24 @@ bemenu
 foot
 font-inter
 netcat-openbsd
+
+# --- deliberately left out, and why -----------------------------------------
+# eudev: a full udev daemon costs ~15-20 MiB installed (it pulls in
+# libudev, hwdb data, and rule files for hardware Androws doesn't need to
+# hot-plug on a fixed low-end target). mdev (already in the list via
+# mdev-conf, and part of busybox) does the same job -- naming and permissions
+# for /dev nodes -- at a fraction of the size, and is what Alpine itself uses
+# by default. Bring eudev back only if you need udev-specific rules a real
+# desktop distro ships (e.g. certain USB-swappable seat setups).
+#eudev
+
+# dbus: costs ~8-12 MiB installed and Androws does not currently have any
+# component that speaks to it -- labwc does not require it (see labwc's own
+# docs: it deliberately avoids a dbus dependency), and seatd talks to clients
+# over its own unix socket, not dbus. Re-add this only when a specific
+# component is added that genuinely requires the system bus (some
+# xdg-desktop-portal implementations do).
+#dbus
 
 # --- graphics: software path only for the low profile -----------------------
 # mesa-dri-gallium pulls in LLVM and costs 40-60 MiB, which alone blows the
