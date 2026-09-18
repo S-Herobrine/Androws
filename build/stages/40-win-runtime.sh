@@ -3,6 +3,12 @@
 source "$(dirname "$0")/../lib/common.sh"
 need_input wine-9.0.tar.xz
 
+# Xwayland lives here, not in the base package list: it is only needed the
+# moment a Wine app asks for X11 rather than Wine's native Wayland driver, so
+# it travels with Wine rather than costing every image ~15-20 MiB unconditionally.
+step "installing Xwayland for Wine's X11 fallback"
+sudo chroot "$ROOTFS" /sbin/apk add --no-cache xwayland
+
 SRC="$WORK/wine-9.0"
 [ -d "$SRC" ] || tar -xf "$WORK/input/wine-9.0.tar.xz" -C "$WORK"
 
