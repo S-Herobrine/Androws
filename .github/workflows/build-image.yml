@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       gsi_url:
-        description: "URL of an AOSP GSI (raw ext4 system.img, or .img.xz)"
+        description: "URL of an AOSP GSI: a .zip from developer.android.com/topic/generic-system-image/releases (aosp_x86_64 row), or a raw system.img / .img.xz"
         required: true
       wine_url:
         description: "URL of a Wine source tarball, 9.0 or newer"
@@ -45,12 +45,30 @@ jobs:
       - name: Fetch the inputs you supplied
         run: |
           mkdir -p work/input
-          curl -fL "${{ inputs.gsi_url }}"  -o work/input/system.img.raw
+          curl -fL "${{ inputs.gsi_url }}"  -o work/input/gsi.download
           curl -fL "${{ inputs.wine_url }}" -o work/input/wine-9.0.tar.xz
-          case "$(file -b work/input/system.img.raw)" in
-            *XZ*) xz -d -c work/input/system.img.raw > work/input/system.img ;;
-            *)    mv work/input/system.img.raw work/input/system.img ;;
+
+          # The Google GSI release page hands out a .zip with system.img inside it
+          # (plus boot.img, vbmeta.img, etc). A raw or xz-compressed system.img is
+          # also accepted directly, so this branches on what actually came back
+          # rather than assuming one shape.
+          kind="$(file -b work/input/gsi.download)"
+          echo "downloaded: $kind"
+          case "$kind" in
+            *Zip*)
+              unzip -o work/input/gsi.download -d work/input/gsi-zip >/dev/null
+              found="$(find work/input/gsi-zip -iname 'system.img' | head -1)"
+              [ -n "$found" ] || { echo "::error::no system.img inside the downloaded zip"; exit 1; }
+              mv "$found" work/input/system.img
+              ;;
+            *XZ*)
+              xz -d -c work/input/gsi.download > work/input/system.img
+              ;;
+            *)
+              mv work/input/gsi.download work/input/system.img
+              ;;
           esac
+          rm -rf work/input/gsi.download work/input/gsi-zip
           ls -lh work/input
 
       - name: Bake the default profile
