@@ -6,7 +6,7 @@ command_background=true
 pidfile="/run/androws/session.pid"
 
 depend() {
-	need androws-brokerd udev
+	need androws-brokerd
 	after androws-droid
 }
 
