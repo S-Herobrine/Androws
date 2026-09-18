@@ -1,0 +1,23 @@
+#!/bin/sh
+# androws-session - the whole user session, started by OpenRC on tty1
+# Author: Saeed x Claude
+set -eu
+
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+export XDG_CURRENT_DESKTOP=Androws
+# The active profile decides the renderer, esync, and video memory. androws-profile
+# writes it; if it has not run yet, pick a profile from the hardware first.
+[ -r /run/androws/profile.env ] || androws-profile auto >/dev/null 2>&1 || true
+[ -r /run/androws/profile.env ] && . /run/androws/profile.env
+export WLR_RENDERER="${WLR_RENDERER:-pixman}"
+export WINEPREFIX="$HOME/.androws/win"
+export WINEDEBUG=-all               # Wine logging costs real memory
+export WINEESYNC="${WINEESYNC:-0}"
+export WINEDLLOVERRIDES="mscoree,mshtml=" # never prompt for mono or gecko
+
+mkdir -p "$XDG_RUNTIME_DIR" "$HOME/.androws" "$HOME/Shared"
+chmod 700 "$XDG_RUNTIME_DIR"
+
+# Xwayland is started on demand by the Wine launcher, not here. Holding it open
+# costs about 18 MB for sessions that may never run a Windows app.
+exec labwc -C /etc/androws/labwc -s androws-launcher

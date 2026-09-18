@@ -1,0 +1,15 @@
+#!/sbin/openrc-run
+description="Androws graphical session on tty1"
+command="/usr/bin/androws-session"
+command_user="androws:androws"
+command_background=true
+pidfile="/run/androws/session.pid"
+
+depend() {
+	need androws-brokerd udev
+	after androws-droid
+}
+
+start_pre() {
+	checkpath -d -m 0700 -o androws:androws /run/user/1000
+}

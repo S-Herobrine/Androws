@@ -1,0 +1,103 @@
+#!/bin/sh
+# androws-profile - switch the whole machine between low, normal and gaming
+# Author: Saeed x Claude
+#
+# One command changes: zram size and algorithm, swappiness, KSM, the CPU governor,
+# the compositor renderer, the Android container props, the Wine environment, and
+# the broker's freeze policy. Everything in one place so the three modes cannot
+# drift apart.
+set -eu
+
+DIR=/etc/androws/profiles
+STATE=/etc/androws/profile
+ENVOUT=/run/androws/profile.env
+
+usage() {
+	cat <<'USAGE'
+androws-profile <low|normal|gaming>
+androws-profile show
+androws-profile auto      pick from installed RAM and whether a GPU is present
+
+  low      512 MB - 1 GB, software rendering, one runtime resident at a time
+  normal   2 - 4 GB, both runtimes stay warm, switching is instant
+  gaming   4 GB+, foreground keeps every page, background goes fully cold
+USAGE
+}
+
+apply() {
+	name="$1"
+	conf="$DIR/$name.conf"
+	[ -r "$conf" ] || { echo "androws-profile: no such profile: $name" >&2; exit 1; }
+
+	# shellcheck disable=SC1090
+	. "$conf"
+
+	# --- memory -------------------------------------------------------
+	if [ -e /dev/zram0 ]; then
+		swapoff /dev/zram0 2>/dev/null || true
+		echo 1 > /sys/block/zram0/reset
+		echo "$ZRAM_ALGO" > /sys/block/zram0/comp_algorithm 2>/dev/null || true
+		echo "$((ZRAM_SIZE * 1024 * 1024))" > /sys/block/zram0/disksize
+		mkswap /dev/zram0 >/dev/null 2>&1
+		swapon -p 100 /dev/zram0
+	fi
+	echo "$SWAPPINESS" > /proc/sys/vm/swappiness
+	[ -w /sys/kernel/mm/ksm/run ] && echo "$KSM" > /sys/kernel/mm/ksm/run
+
+	# --- cpu ----------------------------------------------------------
+	for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+		[ -w "$g" ] && echo "$GOVERNOR" > "$g" || true
+	done
+
+	# --- android container props --------------------------------------
+	cat > /etc/androws/droid.props <<PROPS
+ro.config.low_ram=$DROID_LOW_RAM
+dalvik.vm.heapgrowthlimit=$DROID_HEAP_GROWTH
+dalvik.vm.heapsize=$DROID_HEAP_MAX
+dalvik.vm.dex2oat-filter=$DROID_DEX2OAT_FILTER
+ro.surface_flinger.max_frame_buffer_acquired_buffers=$DROID_SF_BUFFERS
+PROPS
+
+	# --- session environment, read by androws-session ------------------
+	mkdir -p /run/androws
+	{
+		echo "WLR_RENDERER=$WLR_RENDERER"
+		echo "ANDROWS_EFFECTS=$LABWC_EFFECTS"
+		echo "WINEESYNC=$WINE_ESYNC"
+		[ -n "${WINE_FSYNC:-}" ] && echo "WINEFSYNC=$WINE_FSYNC"
+		echo "ANDROWS_WINE_RENDERER=$WINE_RENDERER"
+		echo "ANDROWS_WINE_VIDMEM=$WINE_VIDMEM"
+	} > "$ENVOUT"
+
+	# --- services that can wait ----------------------------------------
+	for svc in ${PAUSE_SERVICES:-}; do
+		rc-service "$svc" stop 2>/dev/null || true
+	done
+
+	# --- the broker's own policy ---------------------------------------
+	echo "$name" > "$STATE"
+	androwsctl profile "$name" >/dev/null 2>&1 || true
+
+	echo "androws-profile: $name applied"
+}
+
+auto() {
+	kb=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+	mb=$((kb / 1024))
+	gpu=0
+	[ -e /dev/dri/card0 ] && gpu=1
+
+	if   [ "$mb" -lt 1600 ];               then pick=low
+	elif [ "$mb" -ge 3600 ] && [ "$gpu" = 1 ]; then pick=gaming
+	else                                        pick=normal
+	fi
+	echo "androws-profile: ${mb} MB RAM, GPU=$gpu -> $pick"
+	apply "$pick"
+}
+
+case "${1:-show}" in
+low|normal|gaming) apply "$1" ;;
+auto)              auto ;;
+show)              echo "profile: $(cat "$STATE" 2>/dev/null || echo low)"; androwsctl state 2>/dev/null || true ;;
+*)                 usage; exit 1 ;;
+esac

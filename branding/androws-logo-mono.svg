@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Androws">
+  <title>Androws (single colour)</title>
+  <defs>
+    <g id="body-m">
+      <path d="M148 118 L116 66" stroke="currentColor" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M364 118 L396 66" stroke="currentColor" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M104 224 A152 152 0 0 1 408 224 Z" fill="currentColor"/>
+      <path d="M118 224 H394 a14 14 0 0 1 14 14 V394 a14 14 0 0 1 -14 14 H118 a14 14 0 0 1 -14 -14 V238 a14 14 0 0 1 14 -14 Z" fill="currentColor"/>
+    </g>
+    <clipPath id="m-tl"><rect x="0"   y="0"   width="247" height="215"/></clipPath>
+    <clipPath id="m-tr"><rect x="265" y="0"   width="247" height="215"/></clipPath>
+    <clipPath id="m-bl"><rect x="0"   y="233" width="247" height="279"/></clipPath>
+    <clipPath id="m-br"><rect x="265" y="233" width="247" height="279"/></clipPath>
+  </defs>
+  <g color="#0E1620">
+    <g clip-path="url(#m-tl)"><use href="#body-m"/></g>
+    <g clip-path="url(#m-tr)"><use href="#body-m" opacity="0.72"/></g>
+    <g clip-path="url(#m-bl)"><use href="#body-m" opacity="0.72"/></g>
+    <g clip-path="url(#m-br)"><use href="#body-m"/></g>
+  </g>
+  <g fill="#FFFFFF">
+    <circle cx="192" cy="152" r="19"/>
+    <circle cx="320" cy="152" r="19"/>
+  </g>
+</svg>

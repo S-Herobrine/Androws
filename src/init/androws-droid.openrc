@@ -1,0 +1,26 @@
+#!/sbin/openrc-run
+# The Android guest container
+description="Androws Droid runtime (stripped AOSP in a user namespace)"
+command="/usr/lib/androws/droid-start"
+command_background=true
+pidfile="/run/androws/droid.pid"
+
+depend() {
+	need androws-brokerd binderfs
+	after modules
+}
+
+start_pre() {
+	checkpath -d -m 0755 /run/androws
+	modprobe -q binder_linux devices="binder,hwbinder,vndbinder" 2>/dev/null || true
+	mountpoint -q /dev/binderfs || {
+		mkdir -p /dev/binderfs
+		mount -t binder binder /dev/binderfs
+	}
+}
+
+start_post() {
+	# The container comes up cold. The launcher thaws it on first use, which keeps
+	# boot to the shell under the memory ceiling.
+	androwsctl focus none >/dev/null 2>&1 || true
+}

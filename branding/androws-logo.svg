@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Androws">
+  <title>Androws</title>
+  <desc>An Android head cut into a Windows four-pane grid. Androws, by Saeed x Claude.</desc>
+
+  <defs>
+    <linearGradient id="skin" x1="104" y1="60" x2="408" y2="408" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3DDC84"/>
+      <stop offset="0.5" stop-color="#1FB6A6"/>
+      <stop offset="1" stop-color="#0078D4"/>
+    </linearGradient>
+
+    <!-- one silhouette, reused four times -->
+    <g id="body">
+      <path d="M148 118 L116 66" stroke="url(#skin)" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M364 118 L396 66" stroke="url(#skin)" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M104 224 A152 152 0 0 1 408 224 Z" fill="url(#skin)"/>
+      <path d="M118 224 H394 a14 14 0 0 1 14 14 V394 a14 14 0 0 1 -14 14 H118 a14 14 0 0 1 -14 -14 V238 a14 14 0 0 1 14 -14 Z" fill="url(#skin)"/>
+    </g>
+
+    <clipPath id="pane-tl"><rect x="0"   y="0"   width="247" height="215"/></clipPath>
+    <clipPath id="pane-tr"><rect x="265" y="0"   width="247" height="215"/></clipPath>
+    <clipPath id="pane-bl"><rect x="0"   y="233" width="247" height="279"/></clipPath>
+    <clipPath id="pane-br"><rect x="265" y="233" width="247" height="279"/></clipPath>
+    <clipPath id="sil">
+      <path d="M104 224 A152 152 0 0 1 408 224 Z"/>
+      <rect x="104" y="224" width="304" height="184" rx="14"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#pane-tl)"><use href="#body"/></g>
+  <g clip-path="url(#pane-br)"><use href="#body"/></g>
+
+  <!-- the two back panes sit a shade lighter, so the cross reads as glazing bars -->
+  <g clip-path="url(#pane-tr)">
+    <use href="#body"/>
+    <g clip-path="url(#sil)"><rect x="265" y="0" width="247" height="215" fill="#FFFFFF" opacity="0.13"/></g>
+  </g>
+  <g clip-path="url(#pane-bl)">
+    <use href="#body"/>
+    <g clip-path="url(#sil)"><rect x="0" y="233" width="247" height="279" fill="#FFFFFF" opacity="0.13"/></g>
+  </g>
+
+  <g fill="#0E1620">
+    <circle cx="192" cy="152" r="19"/>
+    <circle cx="320" cy="152" r="19"/>
+  </g>
+</svg>

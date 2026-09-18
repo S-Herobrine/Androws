@@ -1,0 +1,28 @@
+# Alpine packages for the Androws base. One package per line, comments allowed.
+# Anything added here has to come out of the 68 MiB base budget in docs/BUDGETS.md.
+alpine-baselayout
+busybox
+busybox-openrc
+openrc
+musl
+libc-utils
+util-linux-misc
+e2fsprogs
+f2fs-tools
+squashfs-tools
+zstd-libs
+kmod
+eudev
+mdev-conf
+zram-init
+dbus
+seatd
+labwc
+wlroots
+libinput
+bemenu
+foot
+font-inter
+mesa-dri-gallium
+xwayland
+netcat-openbsd

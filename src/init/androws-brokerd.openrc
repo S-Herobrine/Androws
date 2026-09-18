@@ -1,0 +1,24 @@
+#!/sbin/openrc-run
+# Androws runtime arbiter
+description="Androws broker: keeps exactly one guest runtime resident"
+command="/usr/bin/androws-brokerd"
+command_background=true
+pidfile="/run/androws/brokerd.pid"
+output_log="/var/log/androws/brokerd.log"
+error_log="/var/log/androws/brokerd.log"
+
+depend() {
+	need cgroups localmount
+	before androws-droid androws-session
+}
+
+start_pre() {
+	checkpath -d -m 0755 /run/androws
+	checkpath -d -m 0755 /var/log/androws
+	# zram is what makes a frozen runtime cheap; without it the freeze saves
+	# almost nothing, so refuse to start rather than pretend.
+	if [ ! -e /dev/zram0 ]; then
+		eerror "zram0 missing, Androws cannot hold two runtimes without it"
+		return 1
+	fi
+}

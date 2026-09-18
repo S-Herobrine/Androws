@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 600" width="1024" height="600" role="img" aria-label="Androws boot splash">
+  <title>Androws boot splash</title>
+  <defs>
+    <linearGradient id="sp" x1="104" y1="60" x2="408" y2="408" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3DDC84"/><stop offset="0.5" stop-color="#1FB6A6"/><stop offset="1" stop-color="#0078D4"/>
+    </linearGradient>
+    <g id="body-s">
+      <path d="M148 118 L116 66" stroke="url(#sp)" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M364 118 L396 66" stroke="url(#sp)" stroke-width="26" stroke-linecap="round" fill="none"/>
+      <path d="M104 224 A152 152 0 0 1 408 224 Z" fill="url(#sp)"/>
+      <path d="M118 224 H394 a14 14 0 0 1 14 14 V394 a14 14 0 0 1 -14 14 H118 a14 14 0 0 1 -14 -14 V238 a14 14 0 0 1 14 -14 Z" fill="url(#sp)"/>
+    </g>
+    <clipPath id="s-tl"><rect x="0"   y="0"   width="247" height="215"/></clipPath>
+    <clipPath id="s-tr"><rect x="265" y="0"   width="247" height="215"/></clipPath>
+    <clipPath id="s-bl"><rect x="0"   y="233" width="247" height="279"/></clipPath>
+    <clipPath id="s-br"><rect x="265" y="233" width="247" height="279"/></clipPath>
+    <clipPath id="sils">
+      <path d="M104 224 A152 152 0 0 1 408 224 Z"/>
+      <rect x="104" y="224" width="304" height="184" rx="14"/>
+    </clipPath>
+  </defs>
+  <rect width="1024" height="600" fill="#0E1620"/>
+  <g transform="translate(422,120) scale(0.45)">
+    <g clip-path="url(#s-tl)"><use href="#body-s"/></g>
+    <g clip-path="url(#s-br)"><use href="#body-s"/></g>
+    <g clip-path="url(#s-tr)"><use href="#body-s"/><g clip-path="url(#sils)"><rect x="265" y="0" width="247" height="215" fill="#fff" opacity="0.13"/></g></g>
+    <g clip-path="url(#s-bl)"><use href="#body-s"/><g clip-path="url(#sils)"><rect x="0" y="233" width="247" height="279" fill="#fff" opacity="0.13"/></g></g>
+    <g fill="#0E1620"><circle cx="192" cy="152" r="19"/><circle cx="320" cy="152" r="19"/></g>
+  </g>
+  <text x="512" y="440" text-anchor="middle" font-family="'IBM Plex Sans','Segoe UI',Roboto,system-ui,sans-serif"
+        font-size="54" font-weight="600" letter-spacing="-1" fill="#E8EEF2">Androws</text>
+  <text x="512" y="480" text-anchor="middle" font-family="'IBM Plex Mono',ui-monospace,monospace"
+        font-size="18" letter-spacing="2" fill="#7C8A99">0.1.0-alpha  Cold Boot</text>
+  <text x="512" y="560" text-anchor="middle" font-family="'IBM Plex Mono',ui-monospace,monospace"
+        font-size="15" letter-spacing="1" fill="#4A5A69">Saeed x Claude</text>
+</svg>

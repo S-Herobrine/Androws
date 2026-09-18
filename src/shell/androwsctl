@@ -1,0 +1,64 @@
+#!/bin/sh
+# androwsctl - talk to androws-brokerd and the runtimes
+# Author: Saeed x Claude
+set -eu
+
+SOCK=/run/androws/broker.sock
+
+say() {
+	# One request, one response. nc is busybox nc on the device.
+	printf '%s' "$1" | nc -U -w 2 "$SOCK" 2>/dev/null || {
+		echo "androwsctl: broker is not running" >&2
+		exit 1
+	}
+}
+
+usage() {
+	cat <<'USAGE'
+androwsctl <command>
+
+  focus droid|win|none   make one runtime hot and freeze the other
+  profile low|normal|gaming  switch performance mode
+  state                  show which runtime is hot and what it costs
+  mem                    memory table for the whole system
+  droid <package>        start an Android app by package name
+  win <file.exe>         start a Windows program
+  apps                   list everything the launcher can see
+USAGE
+}
+
+case "${1:-}" in
+focus)   say "FOCUS ${2:-none}" ;;
+profile)
+	# Bare "androwsctl profile" reports; with an argument it switches the whole
+	# machine, which is androws-profile's job, not the broker's alone.
+	[ $# -ge 2 ] || { say "STATE"; exit 0; }
+	exec androws-profile "$2"
+	;;
+state)  say "STATE" ;;
+ping)   say "PING" ;;
+mem)
+	printf '%-28s %8s\n' "component" "kB"
+	for slice in system.slice session.slice androws.slice; do
+		f=/sys/fs/cgroup/$slice/memory.current
+		[ -r "$f" ] && printf '%-28s %8d\n' "$slice" "$(( $(cat "$f") / 1024 ))"
+	done
+	for rt in droid win; do
+		f=/sys/fs/cgroup/androws/$rt/memory.current
+		[ -r "$f" ] && printf '%-28s %8d\n' "runtime:$rt" "$(( $(cat "$f") / 1024 ))"
+	done
+	printf '%-28s %8d\n' "available" "$(awk '/MemAvailable/{print $2}' /proc/meminfo)"
+	;;
+droid)
+	[ $# -ge 2 ] || { usage; exit 1; }
+	say "FOCUS droid" >/dev/null
+	exec androws-droid-exec am start -n "$2"
+	;;
+win)
+	[ $# -ge 2 ] || { usage; exit 1; }
+	say "FOCUS win" >/dev/null
+	WINEPREFIX="${WINEPREFIX:-$HOME/.androws/win}" exec wine "$2"
+	;;
+apps)   exec androws-registry list ;;
+*)      usage ;;
+esac

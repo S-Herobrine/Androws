@@ -1,0 +1,45 @@
+#!/bin/sh
+# androws-registry - builds the one app list the launcher reads
+# Author: Saeed x Claude
+#
+# Android side: ask the container's package manager.
+# Windows side: walk the Wine prefix's Start Menu shortcuts.
+set -eu
+
+REG=/var/lib/androws/apps.tsv
+WINEPREFIX="${WINEPREFIX:-$HOME/.androws/win}"
+MENU="$WINEPREFIX/drive_c/ProgramData/Microsoft/Windows/Start Menu"
+
+scan_droid() {
+	androws-droid-exec pm list packages -3 2>/dev/null | sed 's/^package://' | while read -r pkg; do
+		label=$(androws-droid-exec dumpsys package "$pkg" 2>/dev/null |
+			awk '/applicationLabel=/{sub(/.*applicationLabel=/,""); print; exit}')
+		[ -n "$label" ] || label="$pkg"
+		comp=$(androws-droid-exec cmd package resolve-activity --brief "$pkg" 2>/dev/null | tail -1)
+		[ -n "$comp" ] || continue
+		printf 'droid\t%s\t%s\n' "$label" "$comp"
+	done
+}
+
+scan_win() {
+	[ -d "$MENU" ] || return 0
+	find "$MENU" -name '*.lnk' 2>/dev/null | while read -r lnk; do
+		label=$(basename "$lnk" .lnk)
+		printf 'win\t%s\t%s\n' "$label" "$lnk"
+	done
+}
+
+case "${1:-list}" in
+scan)
+	mkdir -p "$(dirname "$REG")"
+	{ scan_droid; scan_win; } | sort -t"$(printf '\t')" -k2 > "$REG.new"
+	mv "$REG.new" "$REG"
+	echo "androws-registry: $(wc -l < "$REG") apps"
+	;;
+list)
+	[ -r "$REG" ] && cat "$REG" || echo "registry empty, run: androws-registry scan" >&2
+	;;
+*)
+	echo "usage: androws-registry [scan|list]" >&2; exit 1
+	;;
+esac

@@ -1,0 +1,35 @@
+#!/bin/sh
+# androws-launcher - one list of apps, whichever world they come from
+# Author: Saeed x Claude
+#
+# Reads the unified registry, shows it in bemenu (about 400 kB resident, which is why
+# it is bemenu and not a toolkit), then hands the choice to the broker so the right
+# runtime is thawed before the app is asked to start.
+set -eu
+
+REG="${ANDROWS_REGISTRY:-/var/lib/androws/apps.tsv}"
+
+[ -r "$REG" ] || { notify-send "No apps yet" "Install one and run: androws-registry scan"; exit 0; }
+
+# Registry format:  runtime \t display name \t launch target
+choice=$(awk -F'\t' '{ printf "%s  %s\n", ($1=="droid" ? "[D]" : "[W]"), $2 }' "$REG" |
+	sort -k2 |
+	bemenu -i -l 12 -p "Androws" \
+	       --fn "Inter 12" --tb "#0E1620" --tf "#3DDC84" --nb "#0E1620" --nf "#E8EEF2" \
+	       --hb "#0078D4" --hf "#FFFFFF") || exit 0
+
+name=$(printf '%s' "$choice" | sed 's/^\[.\]  //')
+line=$(awk -F'\t' -v n="$name" '$2 == n { print; exit }' "$REG")
+[ -n "$line" ] || exit 0
+
+runtime=$(printf '%s' "$line" | cut -f1)
+target=$(printf '%s' "$line" | cut -f3)
+
+# The broker freezes the other world first; without this the thaw races the reclaim
+# and the launch stutters on a 512 MB device.
+androwsctl focus "$runtime" >/dev/null
+
+case "$runtime" in
+droid) exec androws-droid-exec am start -n "$target" ;;
+win)   WINEPREFIX="$HOME/.androws/win" exec wine "$target" ;;
+esac
