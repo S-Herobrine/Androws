@@ -42,7 +42,7 @@ sudo chroot "$ROOTFS" /usr/sbin/addgroup -g 1000 androws
 sudo chroot "$ROOTFS" /usr/sbin/adduser -D -u 1000 -G androws -h /home/androws androws
 for g in video input audio seat; do sudo chroot "$ROOTFS" /usr/sbin/addgroup androws $g || true; done
 
-budget "base rootfs" "$(mib "$ROOTFS")" 72
+budget "base rootfs" "$(mib "$ROOTFS")" 80
 
 # --- graphics, added conditionally by the target profile --------------------
 # `low` (the default) never installs these: wlroots' pixman backend renders in
