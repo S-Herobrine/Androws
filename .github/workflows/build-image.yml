@@ -9,6 +9,7 @@ on:
       gsi_url:
         description: "URL of an AOSP GSI: a .zip from developer.android.com/topic/generic-system-image/releases (aosp_x86_64 row), or a raw system.img / .img.xz"
         required: true
+        default: "https://dl.google.com/developers/android/cinnamonbun/images/gsi/aosp_x86_64-exp-CP3A.260905.010-16176746-81e37ae9.zip"
       wine_url:
         description: "URL of a Wine source tarball, 9.0 or newer"
         required: true
@@ -73,6 +74,14 @@ jobs:
 
       - name: Bake the default profile
         run: echo "${{ inputs.profile }}" > src/profiles/DEFAULT
+
+      - name: Fix script permissions
+        # The executable bit on shell scripts doesn't always survive being zipped,
+        # extracted, or committed from certain tools. Restoring it here means the
+        # build works regardless of what happened to the files before they got here.
+        run: |
+          chmod +x build/build.sh build/stages/*.sh build/lib/*.sh 2>/dev/null || true
+          chmod +x src/shell/* src/apps/* tools/*.sh 2>/dev/null || true
 
       - name: Build
         run: make image
